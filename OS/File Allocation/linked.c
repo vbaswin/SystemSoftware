@@ -105,7 +105,7 @@ void display(files *start) {
 }
 
 int main() {
-    freopen("linked.in", "rt", stdin);
+    freopen("c.in", "rt", stdin);
     double disk, block;
     printf("Enter the size of disk: ");
     scanf("%lf", &disk);

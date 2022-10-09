@@ -45,13 +45,13 @@ void newFile(int blocks[], double block, int blockNo, int blkAll[][blockNo], fil
     }
 }
 
-void search(int blockNo, file files[],int blkAll[][blockNo]) {
+void search(int fileNo,int blockNo, file files[],int blkAll[][blockNo]) {
     printf("Enter file name: ");
     char name[20];
     scanf("%s", name);
     int idx = -1;
 
-    for (int i = 0; i < blockNo; ++i) {
+    for (int i = 0; i < fileNo; ++i) {
         if (!strcmp(files[i].name,name)) {
             idx = i;
             break;
@@ -73,9 +73,9 @@ void search(int blockNo, file files[],int blkAll[][blockNo]) {
     printf("\n");
 }
 
-void display(int blockNo, file files[]) {
+void display(int fileNo, file files[]) {
     printf("\nName\tsize\tIndxBlkNo\n");
-    for (int i = 0; i < blockNo; ++i) {
+    for (int i = 0; i < fileNo; ++i) {
         if (files[i].idxBlkNo == -1)
             continue;
         printf("%s\t%d\t%d\n", files[i].name, files[i].size,files[i].idxBlkNo);
@@ -110,9 +110,9 @@ int main() {
         if (choice == 1) 
             newFile(blocks, block, blockNo, blkAll, files, &fileNo);
         else if (choice == 2)
-            search(blockNo, files, blkAll);
+            search(fileNo, blockNo, files, blkAll);
         else if (choice == 3)
-            display(blockNo, files);
+            display(fileNo, files);
         else if (choice == 4)
             break;
         else 
