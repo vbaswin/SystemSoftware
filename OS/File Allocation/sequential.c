@@ -54,7 +54,7 @@ void search(int fileNo, file files[]) {
         }
     }
     if (idx == -1) {
-        printf("\nFile not found\n");
+        printf("\nFile not present\n");
         return;
     }
     printf("\nFile is present\nStart block no: %d\n", files[idx].startIdx);

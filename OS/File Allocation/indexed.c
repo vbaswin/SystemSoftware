@@ -58,7 +58,7 @@ void search(int fileNo,int blockNo, file files[],int blkAll[][blockNo]) {
         }
     }
     if (idx == -1) {
-        printf("\nFile not found\n");
+        printf("\nFile not present\n");
         return;
     }
     int idxBlk = files[idx].idxBlkNo;

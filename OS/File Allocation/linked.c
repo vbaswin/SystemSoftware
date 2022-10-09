@@ -85,7 +85,7 @@ void search(files *start) {
     }
 
     if (i == NULL) {
-        printf("\nFile not found\n");
+        printf("\nFile not present\n");
         return;
     }
     printf("\nFile is present\n");
