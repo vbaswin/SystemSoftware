@@ -9,15 +9,27 @@ typedef struct fileInfo {
 
 typedef struct dirInfo {
     char name[20];
-    int noFiles;
     files *link;
 } dirs;
 
-void newDir(dirs dir[], int *sz) {
+typedef struct parentInfo {
+    char name[20];
+    int checked;
+    dirs dir[50];
+} parentI;
+
+void newDir(parentI *parent, int *sz) {
     printf("\nEnter name of new dir: ");
-    scanf("%s", dir[*sz].name);
-    dir[*sz].noFiles = 0;
-    dir[(*sz)++].link = NULL;
+    char name[20], str[] = "";
+    scanf("%s", name);
+
+    if (!(*parent).checked) {
+        strcpy((*parent).name, name);
+        (*parent).checked = 1;
+        return;
+    }
+    strcpy((*parent).dir[*sz].name,name);
+    (*parent).dir[(*sz)++].link = NULL;
 }
 
 void newFile(dirs dir[], int sz) {
@@ -86,22 +98,23 @@ void search(dirs dir[], int sz) {
 }
 
 int main() {
-    freopen("2level.in", "rt", stdin);
+    // freopen("2level.in", "rt", stdin);
 
-    dirs dir[50];
+    parentI parent;
+    parent.checked = 0;
     printf("1) new Dir\n2) new file\n3) display\n4) search\n5) Exit\n");
     int choice, sz = 0;
     while (1) {
         printf("\nEnter one of options: ");
         scanf("%d", &choice);
         if (choice == 1)
-            newDir(dir, &sz);
+            newDir(&parent, &sz);
         else if (choice == 2)
-            newFile(dir, sz);
+            newFile(parent.dir, sz);
         else if (choice == 3)
-            display(dir, sz);
+            display(parent.dir, sz);
         else if (choice == 4)
-            search(dir, sz);
+            search(parent.dir, sz);
         else if (choice == 5)
             break;
         else 
