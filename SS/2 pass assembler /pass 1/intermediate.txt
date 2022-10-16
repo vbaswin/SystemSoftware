@@ -1,0 +1,8 @@
+   0 COPY WOW 1000
+   3 HI ADD 5000
+   6 JOCKER MUL 9430
+   9 now WORD 5
+  D1 NULL RESB 200
+// hi this  is comment
+  D4 NULL JSUB 6000
+  DD aswin BYTE here'i'am

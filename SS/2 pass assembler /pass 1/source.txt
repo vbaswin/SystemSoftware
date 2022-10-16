@@ -1,0 +1,9 @@
+COPY WOW 1000
+HI   ADD 5000
+JOCKER MUL 9430
+now WORD  5
+NULL RESB 200
+//  hi this is comment
+NULL JSUB 6000
+aswin BYTE here'i'am 
+NULL  END   4534
