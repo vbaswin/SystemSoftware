@@ -1,5 +1,4 @@
-COPY    0
-HI    0
-JOCKER    3
-now    6
-aswin   D4
+HI		1000
+JOCKER	1003
+now		1006
+aswin	10D4

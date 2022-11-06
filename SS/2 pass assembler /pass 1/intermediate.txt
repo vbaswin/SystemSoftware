@@ -1,8 +1,9 @@
-   0 COPY WOW 1000
-   3 HI ADD 5000
-   6 JOCKER MUL 9430
-   9 now WORD 5
-  D1 NULL RESB 200
-// hi this  is comment
-  D4 NULL JSUB 6000
-  DD aswin BYTE here'i'am
+1000	COPY	START	1000
+1000	HI		ADD		5000
+1003	JOCKER	MUL		9430
+1006	now		WORD	5
+1009	-		RESB	200
+** hi this is comment
+10D1	-		JSUB	6000
+10D4	aswin	BYTE	here'i'am
+10D4	-		END		4534

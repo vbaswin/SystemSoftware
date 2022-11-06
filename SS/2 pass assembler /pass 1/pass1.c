@@ -38,9 +38,10 @@ int searchOptab(FILE *OPTAB, char key[]) {
     }
     return 0;
 }
+
 int main() {
     FILE  *source, *OPTAB, *SYMTAB, *intermediate, *infoSave;
-    int LOCCTR;
+    int LOCCTR, startingAddress, current;
 
     source = fopen("source.txt", "r");
     OPTAB = fopen("optab.txt", "r");
@@ -63,10 +64,12 @@ int main() {
         LOCCTR = 0;
         rewind(source);
     }
+    startingAddress = LOCCTR;
 
     char comment[200], f_comm[2000] = "";
     read(source, &d);
     while (strcmp(d.opcode, "END")) {
+        current = LOCCTR;
         if (strcmp(d.label, "//")) {
             if (strcmp(d.label, "NULL")) {
                 if (!searchSymtab(SYMTAB, d.label))
@@ -78,10 +81,15 @@ int main() {
                 LOCCTR += 3;
             else if (!strcmp(d.opcode, "RESW"))
                 LOCCTR += (3 * atoi(d.operand));
-            else if (!strcmp(d.opcode, "RESB"))
+            else if (!strcmp(d.opcode, "RESB")) 
                 LOCCTR += atoi(d.operand);
             else if (!strcmp(d.opcode, "BYTE")) 
                 LOCCTR += strlen(d.operand);
+            else {
+                printf("Error in opcode!\n");
+                read(source, &d);
+                continue;
+            }
             
         }
         else {
@@ -91,11 +99,11 @@ int main() {
             read(source, &d);
             continue;
         }
-        saveInter(intermediate, d, LOCCTR);
+        saveInter(intermediate, d, current);
         read(source, &d);
         printf("%d\n", LOCCTR);
     }
-    fprintf(infoSave, "LOCCTR: %d", LOCCTR);
+    fprintf(infoSave, "LOCCTR: %X\nLength of program: %X", LOCCTR, (LOCCTR-startingAddress));
 
     fclose(source);
     fclose(OPTAB);
