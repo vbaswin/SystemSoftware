@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 void saveInter(FILE *file, char **code, int len, int LOCCTR) {
     fprintf(file, "%04X", LOCCTR);
@@ -57,6 +58,15 @@ char **codeSplit(char str[], int *len){
     return code;
 }
 
+int bytecondition(char str[]) {
+    if (str[1] == 'C') 
+        return strlen(str);
+    else if (str[1] == 'X') {
+        return ceil(strlen(str)/2);
+    }
+    return 0;
+}
+
 int main() {
     FILE  *source, *OPTAB, *SYMTAB, *intermediate, *infoSave;
     int LOCCTR, startingAddress, current, len;
@@ -104,9 +114,8 @@ int main() {
                 LOCCTR += (3 * atoi(code[2]));
             else if (!strcmp(code[1], "RESB")) 
                 LOCCTR += atoi(code[2]);
-            else if (!strcmp(code[1], "BYTE")) {
-                LOCCTR += strlen(code[2]);
-            }
+            else if (!strcmp(code[1], "BYTE")) 
+                LOCCTR += bytecondition(code[1]);
             else {
                 printf("Error in opcode!\n");
                 fgets(str, 100, source);

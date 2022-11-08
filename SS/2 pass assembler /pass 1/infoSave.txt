@@ -1,2 +1,2 @@
-LOCCTR: 10DE
-Length of program: 00DE
+LOCCTR: 10D4
+Length of program: 00D4
