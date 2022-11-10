@@ -1,21 +1,23 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
-typedef struct datas {
-    char label[20];
-    char opcode[20];
-    char operand[20];
-} data;
+void saveInter(FILE *file, char **code, int len, int LOCCTR) {
+    fprintf(file, "%04X", LOCCTR);
+    for (int i = 0; i < len; ++i) {
+        if (i > 0 && strlen(code[i-1]) < 4)
+            fprintf(file, "\t\t%s", code[i]);
+        else 
+            fprintf(file, "\t%s", code[i]);
 
-void read(FILE *file, data *d) {
-    fscanf(file, "%s %s %s", (*d).label, (*d).opcode, (*d).operand);
-}
-void saveInter(FILE *file, data d, int LOCCTR) {
-    fprintf(file, "%4X %s %s %s\n", LOCCTR, d.label, d.opcode, d.operand);
+    } 
 }
 void saveSym(FILE *file, char label[], int LOCCTR) {
-    fprintf(file, "%s %4X\n", label, LOCCTR);
+    if (strlen(label) < 4)
+        fprintf(file, "%s\t\t%04X\n", label, LOCCTR);
+    else 
+        fprintf(file, "%s\t%04X\n", label, LOCCTR);
 }
 
 int searchSymtab(FILE *SYMTAB, char key[]) {
@@ -32,16 +34,43 @@ int searchOptab(FILE *OPTAB, char key[]) {
     rewind(OPTAB);
     char op[20];
     int opcode;
-    while (fscanf(OPTAB, "%s %X", op, &opcode) != EOF) {
+    while (fscanf(OPTAB, "%s %06X", op, &opcode) != EOF) {
         if (!strcmp(op, key))
             return 1;
     }
     return 0;
 }
 
+char **codeSplit(char str[], int *len){
+    *len = 0;
+
+    char ** code = malloc(10 * sizeof(char));
+    for (int i = 0; i < 10; ++i) 
+        code[i] = malloc(10 * sizeof(char));
+
+    char *hi = strtok(str, " ");
+
+    while (hi != NULL) {
+        code[(*len)++] = hi;
+        hi = strtok(NULL, " ");
+    }
+
+    return code;
+}
+
+int bytecondition(char str[]) {
+    if (str[0] == 'C') {
+        return strlen(str) - 3;
+    }
+    else if (str[0] == 'X') 
+        return ceil((int)((strlen(str)-2)/2));
+    return 0;
+}
+
 int main() {
     FILE  *source, *OPTAB, *SYMTAB, *intermediate, *infoSave;
-    int LOCCTR, startingAddress, current;
+    int LOCCTR, startingAddress, current, len;
+    char **code, str[100];
 
     source = fopen("source.txt", "r");
     OPTAB = fopen("optab.txt", "r");
@@ -49,16 +78,17 @@ int main() {
     intermediate = fopen("intermediate.txt", "w+");
     infoSave = fopen("infoSave.txt", "w+");
 
-    data d;
     if (!source)  {
         printf("Error opening file\n");
         return 0;
     }
-    read(source, &d);
-    if (!strcmp(d.opcode, "START")) {
+    fgets(str, 100, source);
+    code = codeSplit(str, &len);
+
+    if (!strcmp(code[1], "START")) {
         // convert string to base 16
-        LOCCTR = (int)strtol(d.operand, NULL, 16);
-        saveInter(intermediate, d, LOCCTR);
+        LOCCTR = (int)strtol(code[2], NULL, 16);
+        saveInter(intermediate, code, len, LOCCTR);
     }
     else {
         LOCCTR = 0;
@@ -66,44 +96,47 @@ int main() {
     }
     startingAddress = LOCCTR;
 
-    char comment[200], f_comm[2000] = "";
-    read(source, &d);
-    while (strcmp(d.opcode, "END")) {
+    fgets(str, 100, source);
+    code = codeSplit(str, &len);
+    while (strcmp(code[1], "END")) {
         current = LOCCTR;
-        if (strcmp(d.label, "//")) {
-            if (strcmp(d.label, "NULL")) {
-                if (!searchSymtab(SYMTAB, d.label))
-                    saveSym(SYMTAB, d.label, LOCCTR); 
+        if (strcmp(code[0], "**")) {
+            if (strcmp(code[0], "-")) {
+                if (!searchSymtab(SYMTAB, code[0]))
+                    saveSym(SYMTAB, code[0], LOCCTR); 
             }
-            if (searchOptab(OPTAB, d.opcode)) 
+            if (searchOptab(OPTAB, code[1])) 
                 LOCCTR += 3;
-            else if (!strcmp(d.opcode, "WORD"))
+            else if (!strcmp(code[1], "WORD")) 
                 LOCCTR += 3;
-            else if (!strcmp(d.opcode, "RESW"))
-                LOCCTR += (3 * atoi(d.operand));
-            else if (!strcmp(d.opcode, "RESB")) 
-                LOCCTR += atoi(d.operand);
-            else if (!strcmp(d.opcode, "BYTE")) 
-                LOCCTR += strlen(d.operand);
+            else if (!strcmp(code[1], "RESW"))
+                LOCCTR += (3 * atoi(code[2]));
+            else if (!strcmp(code[1], "RESB")) 
+                LOCCTR += atoi(code[2]);
+            else if (!strcmp(code[1], "BYTE")) 
+                LOCCTR += bytecondition(code[2]);
             else {
                 printf("Error in opcode!\n");
-                read(source, &d);
+                fgets(str, 100, source);
+                code = codeSplit(str, &len);
                 continue;
             }
-            
         }
         else {
-            fgets(comment, 200, source);
-            snprintf(f_comm, 200, "%s %s %s %s", d.label, d.opcode, d.operand, comment);
-            fputs(f_comm, intermediate);
-            read(source, &d);
+            fprintf(intermediate, "%s", code[0]);
+            for (int i = 1; i < len; ++i)
+                fprintf(intermediate, " %s", code[i]);
+            fgets(str, 100, source);
+            code = codeSplit(str, &len);
             continue;
         }
-        saveInter(intermediate, d, current);
-        read(source, &d);
-        printf("%d\n", LOCCTR);
+        saveInter(intermediate, code, len, current);
+        fgets(str, 100, source);
+        code = codeSplit(str, &len);
     }
-    fprintf(infoSave, "LOCCTR: %X\nLength of program: %X", LOCCTR, (LOCCTR-startingAddress));
+    saveInter(intermediate, code, len, LOCCTR);
+
+    fprintf(infoSave, "LOCCTR: %04X\nLength of program: %04X", LOCCTR, (LOCCTR-startingAddress));
 
     fclose(source);
     fclose(OPTAB);

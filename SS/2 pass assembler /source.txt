@@ -1,9 +1,0 @@
-COPY    START   1000
-HI      ADD     5000
-JOCKER  MUL     9430
-now     WORD    5
--       RESB    200
-** hi this is comment
--       JSUB    6000
-aswin   BYTE    C'here'i'am
--       END     4534
