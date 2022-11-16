@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 
+// struct data {
+//     char code[10][10];
+// }
+
 int main() {
     FILE *intermediate = fopen("intermediate.txt", "r");
 
@@ -13,11 +17,19 @@ int main() {
 
     int j =0; 
     int len = 0;
+    memset(code[len],0,10);
     while((c=fgetc(intermediate)) != '\n') {
-        printf("%c ", c);
-        if (c == ' ' || c == '\t') 
-            ++len;
+        printf("%c", c);
+        if ((c == ' ' || c == '\t' )) {
+            if (strlen(code[len]) > 0) {
+                printf("%s\n", code[len]);
+                ++len;
+                memset(code[len],0,10);
+            }
+            else 
+                continue;
+        }
         strcat(code[len], &c);
-        printf("%s\n", code[len]);
     }
+    printf("\n");
 }

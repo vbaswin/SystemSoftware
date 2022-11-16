@@ -136,7 +136,7 @@ int main() {
     }
     saveInter(intermediate, code, len, LOCCTR);
 
-    fprintf(infoSave, "LOCCTR: %04X\nLength of program: %04X", LOCCTR, (LOCCTR-startingAddress));
+    fprintf(infoSave, "ProgramLength: %4X", (LOCCTR-startingAddress));
 
     fclose(source);
     fclose(OPTAB);
