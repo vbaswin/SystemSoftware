@@ -1,142 +1,179 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
-// int searchSymtab(FILE *SYMTAB, char key[]) {
-//     rewind(SYMTAB);
-//     char label[20], address[20];
-//     while (fscanf(SYMTAB, "%s %s", label, address) != EOF) {
-//         if (!strcmp(key, label)) 
-//             return 1;
-//     }
-//     return 0;
-// }
-
-// int searchOptab(FILE *OPTAB, char key[]) {
-//     rewind(OPTAB);
-//     char op[20];
-//     int opcode;
-//     while (fscanf(OPTAB, "%s %06X", op, &opcode) != EOF) {
-//         if (!strcmp(op, key))
-//             return 1;
-//     }
-//     return 0;
-// }
-
-char **codeSplit(char str[], int *len){
-    *len = 0;
-    printf("%s", str);
-
-    char ** code = malloc(10 * sizeof(char));
-    for (int i = 0; i < 10; ++i) 
-        code[i] = malloc(10 * sizeof(char));
-
-    char *hi = strtok(str, " \t");
-    printf("%s", hi);
-
-    while (hi != NULL) {
-        code[(*len)++] = hi;
-        hi = strtok(NULL, " \t");
-        printf("%s %s\n",hi, code[*len]);
+int parseSpTb (char code[][20], FILE *source) {
+    int j = 0, k = 0, sz = 0;
+    char ch;
+    while ((ch = fgetc(source)) != '\n' && ch != EOF) { 
+        if(ch == ' ' || ch == '\t'){
+            if (sz) {
+                sz = 0;
+                code[j][k] = 0;
+                k = 0;
+                ++j;
+            } else 
+                continue;
+        } else {
+            sz = 1;
+            code[j][k++] = ch;
+        }
     }
-
-    return code;
+    if (!sz)
+        return j;
+    code[j][k] = 0;
+    return j+1;
 }
 
-
-void listWrite(FILE *list, int startAddress, int objectCode) {
-
+int searchSymtab(FILE *SYMTAB, char key[]) {
+    rewind(SYMTAB);
+    char label[20];
+    int address;
+    while (fscanf(SYMTAB, "%s %04X", label, &address) != EOF) {
+        if (!strcmp(key, label)) 
+            return address;
+    }
+    return -1;
 }
 
+int searchOptab(FILE *OPTAB, char key[]) {
+    rewind(OPTAB);
+    char op[20];
+    int opcode;
+    while (fscanf(OPTAB, "%s %X", op, &opcode) != EOF) {
+        if (!strcmp(op, key)) {
+            return opcode;
+        }
+    }
+    return -1;
+}
+
+// void textInit(FILE *objectCode) {
+//     fprintf(objectCode, "T‸%-6s‸%06X‸%06X", name, startingAddress, programLen);
+// }
+
+void writeTextRecord(FILE *objectCode, char tRecord[][20], int tStart, int tCur, int tLen) {
+    printf("len: %d\n", tLen);
+    fprintf(objectCode, "T‸%06X‸%02X", tStart, tLen/2);
+    for (int i = 0; i < tCur; ++i)
+        fprintf(objectCode, "‸%s", tRecord[i]);
+    fprintf(objectCode, "\n");
+}
+
+void resetTextRecord(char tRecord[][20], int *tCur) {
+    for (int i = 0;i < 20; ++i) {
+        memset(tRecord[i], 0, 20);
+    }
+    *tCur = 0;
+}
+
+void storeTextData(FILE *objectCode, char tRecord[][20], int *tCur, int *tStart, int *tLen, char code[100][20], int last) {
+    char temp[30];
+    if (!last)
+        --*tCur;
+    memset(temp, 0 , 30);
+    memcpy(temp, tRecord[*tCur], strlen(tRecord[*tCur]));
+    writeTextRecord(objectCode, tRecord, *tStart, *tCur, *tLen-strlen(tRecord[*tCur]));
+    resetTextRecord(tRecord, &*tCur);
+    memcpy(tRecord[(*tCur)++], temp, strlen(temp));
+    *tStart = strtol(code[0], NULL, 16);
+    *tLen = strlen(temp);
+    printf("len: %d\n", *tLen);
+
+}
 int main() {
-    FILE  *OPTAB, *SYMTAB, *intermediate, *infoSave, *objectPrgm, *listing;
-    int LOCCTR, startingAddress, current, len;
-    char **code, str[200];
+    FILE  *OPTAB, *SYMTAB, *intermediate, *infoSave, *objectCode;
+    int startingAddress, current, len, programLen, tStartAddr, opcode, tCur = 0, tStart, address, tLen = 0;
+    char code[100][20], temp[30], tRecord[20][20], addressString[10], previous[30];
 
-    OPTAB = fopen("optab.txt", "r");
-    SYMTAB = fopen("symtab.txt", "r");
-    intermediate = fopen("intermediate.txt", "r");
-    infoSave = fopen("infoSave.txt", "r");
-    objectPrgm = fopen("objectProgram.txt", "w+");
-    listing = fopen("assemblyListing.txt", "w+");
+    intermediate = fopen("intermediate.txt", "r+");
+    OPTAB = fopen("optab.txt", "r+");
+    SYMTAB = fopen("symtab.txt", "r+");
+    infoSave = fopen("infoSave.txt", "r+");
+    objectCode = fopen("objectCode.txt", "w+");
 
     if (!intermediate)  {
         printf("Error opening file\n");
         return 0;
     }
-    fgets(str, 200, intermediate);
-    // printf("%s", str);
-    code = codeSplit(str, &len);
-    // printf("%s\n", code[0]);
 
-    // char name[10] = " ", startAdd[10];
-    // strcpy(startAdd, code[0]);
-    // printf("%s", code[2]);
-    // if (!strcmp(code[2], "START")) {
-    //     // listing line 
-    //     strcpy(name,code[1]);
-    //     strcpy(startAdd, code[3]);
-    //     fgets(str, 100, intermediate);
-    //     code = codeSplit(str, &len);
-    // }
-    // fgets(str, 100, infoSave);
-    // fgets(str, 100, infoSave);
-    // code = codeSplit(str, &len);
-    // char length[6];
-    // strcpy(length, code[3]);
-    // fprintf(objectPrgm, "H‸%s‸%s‸%s\n", name, startAdd,length);
+    len = parseSpTb(code, intermediate);
+    char name[10];
+    startingAddress = 0;
+    if (!strcmp(code[2], "START")) {
+        if (strcmp(code[1],"-")) 
+            strcpy(name,code[1]);
+        // convert string to base 16
+        startingAddress = (int)strtol(code[3], NULL, 16);
+        len = parseSpTb(code, intermediate);
+    }
+    tStartAddr = (int)strtol(code[0],NULL, 16);
+    resetTextRecord(tRecord, &tCur);
 
-    // while (strcmp(code[2], "END")) {
-    //     current = LOCCTR;
-    //     if (strcmp(code[0], "**")) {
-    //         if (strcmp(code[0], "-")) {
-    //             if (!searchSymtab(SYMTAB, code[0]))
-    //                 saveSym(SYMTAB, code[0], LOCCTR); 
-    //         }
-    //         if (searchOptab(OPTAB, code[1])) 
-    //             LOCCTR += 3;
-    //         else if (!strcmp(code[1], "WORD")) 
-    //             LOCCTR += 3;
-    //         else if (!strcmp(code[1], "RESW"))
-    //             LOCCTR += (3 * atoi(code[2]));
-    //         else if (!strcmp(code[1], "RESB")) 
-    //             LOCCTR += atoi(code[2]);
-    //         else if (!strcmp(code[1], "BYTE")) 
-    //             LOCCTR += bytecondition(code[2]);
-    //         else {
-    //             printf("Error in opcode!\n");
-    //             fgets(str, 100, intermediate);
-    //             code = codeSplit(str, &len);
-    //             continue;
-    //         }
-    //     }
-    //     else {
-    //         fprintf(intermediate, "%s", code[0]);
-    //         for (int i = 1; i < len; ++i)
-    //             fprintf(intermediate, " %s", code[i]);
-    //         fgets(str, 100, intermediate);
-    //         code = codeSplit(str, &len);
-    //         continue;
-    //     }
-    //     saveInter(intermediate, code, len, current);
-    //     fgets(str, 100, intermediate);
-    //     code = codeSplit(str, &len);
-    // }
-    // saveInter(intermediate, code, len, LOCCTR);
+    fscanf(infoSave, "%s %X", temp, &programLen);
+    fprintf(objectCode, "H‸%-6s‸%06X‸%06X\n", name, startingAddress, programLen);
 
-    // rewind(infoSave);
-    // fgets(str, 100, infoSave);
-    // code = codeSplit(str, &len);
-    // printf("%s", code[1]);
+    tStart = startingAddress;
+    // textInit(objectCode, tStart, )
 
+    while (strcmp(code[2], "END")) {
+        if ((opcode = searchOptab(OPTAB, code[2])) != -1) {
+            if (strcmp(code[3],"-")) {
+                if ((address = searchSymtab(SYMTAB, code[3])) != -1) {
+                    sprintf(addressString, "%04X", address);
+                }else 
+                    memcpy(addressString, "0000", strlen(addressString));
+            } else {
+                memcpy(addressString, "0000", strlen(addressString));
+            }
+            sprintf(tRecord[tCur], "%02X%s",opcode,addressString);
+            tLen += strlen(tRecord[tCur++]);
+        } else if (!strcmp(code[2], "BYTE")) {
+            if (code[3][0] == 'C') {
+                char byteAscii[100] = {0};
+                char asciiCode[3], ch;
+                for (int i = 1; i < strlen(code[3]); ++i) {
+                    ch = code[3][i];
+                    if (ch == '\'')
+                        continue;
+                    sprintf(asciiCode, "%0X", ch);
+                    strcat(byteAscii, asciiCode);
+                }
+                memcpy(tRecord[tCur], byteAscii, strlen(byteAscii));
+            } else if (code[3][0] == 'X') {
+                char new[10], ch;
+                memset(new, 0, 10);
+                int j = 0;
+                for (int i = 1; i < strlen(code[3]); ++i) {
+                    ch = code[3][i];
+                    if (ch == '\'')
+                        continue;
+                    new[j++] = ch;
+                }
+                memcpy(tRecord[tCur], new, strlen(new));
+            }
+            tLen += strlen(tRecord[tCur++]);
+        } else if (!strcmp(code[2], "WORD")) {
+            int val;
+            char word[50];
+            val = (int)strtol(code[3], NULL, 10);
+            sprintf(word,"%06X", val);
+            memcpy(tRecord[tCur], word, strlen(word));
+            tLen += strlen(tRecord[tCur++]);
+        } 
+        printf("mnemonic: %s opcode: %s\n", code[2], tRecord[tCur -1]);
+        if (tLen > 60) 
+            storeTextData(objectCode, tRecord, &tCur, &tStart, &tLen, code, 0);
+        len = parseSpTb(code, intermediate);
+    }
+    if (tLen)
+        storeTextData(objectCode, tRecord, &tCur, &tStart, &tLen, code, 1);
+    fprintf(objectCode, "E‸%06X", startingAddress);
 
-
-    fclose(objectPrgm);
-    fclose(listing);
-    fclose(intermediate);
     fclose(OPTAB);
     fclose(SYMTAB);
+    fclose(intermediate);
     fclose(infoSave);
     return 0;
 }

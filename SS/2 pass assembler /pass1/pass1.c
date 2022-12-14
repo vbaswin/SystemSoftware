@@ -93,17 +93,14 @@ int main() {
         // convert string to base 16
         LOCCTR = (int)strtol(code[2], NULL, 16);
         saveInter(intermediate, code, len, LOCCTR);
+        len = parseSpTb(code, source);
     }
-    else {
+    else 
         LOCCTR = 0;
-        rewind(source);
-    }
     startingAddress = LOCCTR;
 
-    len = parseSpTb(code, source);
     while (strcmp(code[1], "END")) {
         current = LOCCTR;
-        printf("%s %s %s\n", code[0], code[1], code[2]);
         if (strcmp(code[0], "**")) {
             if (strcmp(code[0], "-")) {
                 if (!searchSymtab(SYMTAB, code[0]))
@@ -132,6 +129,7 @@ int main() {
         saveInter(intermediate, code, len, current);
         len = parseSpTb(code, source);
     }
+    saveInter(intermediate, code, len, LOCCTR);
     fprintf(infoSave, "ProgramLength: %4X", (LOCCTR-startingAddress));
 
     fclose(source);
