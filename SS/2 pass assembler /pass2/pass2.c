@@ -49,12 +49,7 @@ int searchOptab(FILE *OPTAB, char key[]) {
     return -1;
 }
 
-// void textInit(FILE *objectCode) {
-//     fprintf(objectCode, "T‸%-6s‸%06X‸%06X", name, startingAddress, programLen);
-// }
-
 void writeTextRecord(FILE *objectCode, char tRecord[][20], int tStart, int tCur, int tLen) {
-    printf("len: %d\n", tLen);
     fprintf(objectCode, "T‸%06X‸%02X", tStart, tLen/2);
     for (int i = 0; i < tCur; ++i)
         fprintf(objectCode, "‸%s", tRecord[i]);
@@ -79,7 +74,6 @@ void storeTextData(FILE *objectCode, char tRecord[][20], int *tCur, int *tStart,
     memcpy(tRecord[(*tCur)++], temp, strlen(temp));
     *tStart = strtol(code[0], NULL, 16);
     *tLen = strlen(temp);
-    printf("len: %d\n", *tLen);
 
 }
 int main() {
@@ -115,7 +109,6 @@ int main() {
     fprintf(objectCode, "H‸%-6s‸%06X‸%06X\n", name, startingAddress, programLen);
 
     tStart = startingAddress;
-    // textInit(objectCode, tStart, )
 
     while (strcmp(code[2], "END")) {
         if ((opcode = searchOptab(OPTAB, code[2])) != -1) {
@@ -162,7 +155,6 @@ int main() {
             memcpy(tRecord[tCur], word, strlen(word));
             tLen += strlen(tRecord[tCur++]);
         } 
-        printf("mnemonic: %s opcode: %s\n", code[2], tRecord[tCur -1]);
         if (tLen > 60) 
             storeTextData(objectCode, tRecord, &tCur, &tStart, &tLen, code, 0);
         len = parseSpTb(code, intermediate);
