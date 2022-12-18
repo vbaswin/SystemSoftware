@@ -6,14 +6,14 @@
 int parseSpTb (char code[][20], FILE *source) {
     int j = 0, k = 0, sz = 0;
     char ch;
-    while ((ch = fgetc(source)) != '\n' && ch != EOF) { 
+    while ((ch = fgetc(source)) != '\n' && ch != EOF) {
         if(ch == ' ' || ch == '\t'){
             if (sz) {
                 sz = 0;
                 code[j][k] = 0;
                 k = 0;
                 ++j;
-            } else 
+            } else
                 continue;
         } else {
             sz = 1;
@@ -31,7 +31,7 @@ int searchSymtab(FILE *SYMTAB, char key[]) {
     char label[20];
     int address;
     while (fscanf(SYMTAB, "%s %04X", label, &address) != EOF) {
-        if (!strcmp(key, label)) 
+        if (!strcmp(key, label))
             return address;
     }
     return -1;
@@ -96,7 +96,7 @@ int main() {
     char name[10];
     startingAddress = 0;
     if (!strcmp(code[2], "START")) {
-        if (strcmp(code[1],"-")) 
+        if (strcmp(code[1],"-"))
             strcpy(name,code[1]);
         // convert string to base 16
         startingAddress = (int)strtol(code[3], NULL, 16);
@@ -115,7 +115,7 @@ int main() {
             if (strcmp(code[3],"-")) {
                 if ((address = searchSymtab(SYMTAB, code[3])) != -1) {
                     sprintf(addressString, "%04X", address);
-                }else 
+                }else
                     memcpy(addressString, "0000", strlen(addressString));
             } else {
                 memcpy(addressString, "0000", strlen(addressString));
@@ -148,14 +148,13 @@ int main() {
             }
             tLen += strlen(tRecord[tCur++]);
         } else if (!strcmp(code[2], "WORD")) {
-            int val;
             char word[50];
-            val = (int)strtol(code[3], NULL, 10);
+            int val = (int)strtol(code[3], NULL, 10);
             sprintf(word,"%06X", val);
             memcpy(tRecord[tCur], word, strlen(word));
             tLen += strlen(tRecord[tCur++]);
-        } 
-        if (tLen > 60) 
+        }
+        if (tLen > 60)
             storeTextData(objectCode, tRecord, &tCur, &tStart, &tLen, code, 0);
         len = parseSpTb(code, intermediate);
     }
