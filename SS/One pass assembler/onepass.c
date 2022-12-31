@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <wchar.h>
 
 typedef struct nxtfrwd {
     char address[20];
@@ -39,9 +40,65 @@ int parseSpTb (char code[][20], FILE *source) {
     return j+1;
 }
 
-void saveSym(sym **SYMTAB, char label[], int LOCCTR, int forward) {
+int parseObjectCode(char code[][20], FILE ****objectCode) {
+    int j = 0, k = 0, sz = 0;
+    char hi[20];
+    rewind(***objectCode);
+    fscanf(***objectCode, "%s", hi);
+    printf("%s", hi);
+    wchar_t ch;
+    printf("%c", ch);
+    while ((ch = fgetc(***objectCode)) != '\n' && ch != EOF) {
+        printf("%c", ch);
+        if(ch == ' ' || ch == ' '){
+            if (sz) {
+                sz = 0;
+                code[j][k] = 0;
+                k = 0;
+                ++j;
+            } else
+                continue;
+        } else {
+            sz = 1;
+            code[j][k++] = ch;
+        }
+    }
+    if (!sz)
+        return j;
+    code[j][k] = 0;
+    return j+1;
+}
+
+void findAndReplace(sym ***SYMTAB, char find[20], char replace[20], FILE ***objectCode) {
+    // memcpy((**SYMTAB)->labelName, "Hello", 6);
+    int len;
+    char code[100][20];
+    // // fclose(**objectCode);
+
+    FILE *tempFile = fopen("temp.txt", "w+");
+
+    fseek(**objectCode, 0, SEEK_SET);
+    // if (!**objectCode) {
+    //     printf("\nError opening file\n");
+    //     return;
+    // }
+
+    len = parseObjectCode(code, &objectCode);
+    printf("\nlen: %d\n", len);
+    while (!strcmp(code[1], "END")) {
+        for (int i = 0; i < len; ++i)
+            printf("%s ", code[i]);
+        len = parseObjectCode(code, &objectCode);
+    }
+    fclose(tempFile);
+}
+
+void saveSym(sym **SYMTAB, char label[], int LOCCTR, int forward, FILE **objectCode) {
+    // printf("%s %d\n", label, LOCCTR);
+
     char strLocctr[20];
     sprintf(strLocctr,"%04X", LOCCTR);
+    // printf("\nlabel; %s\n%s\n",label, strLocctr);
 
     sym *temp;
 
@@ -56,19 +113,21 @@ void saveSym(sym **SYMTAB, char label[], int LOCCTR, int forward) {
             memcpy(newForward->address, strLocctr,strlen(strLocctr));
             newForward->link = NULL;
 
-            if (!(*SYMTAB)->link) {
-                (*SYMTAB)->link = newForward;
+            if (!temp->link) {
+                temp->link = newForward;
                 return;
             }
             for (temp1 = temp->link; temp1->link != NULL; temp1 = temp1->link);
             temp1->link = newForward;
         } else {
             memcpy(temp->address, strLocctr, strlen(strLocctr));
-            for (temp1 = temp->link; temp1 != NULL; temp1 = temp1->link) {
-                // if (temp1)
-            }
+            for (temp1 = temp->link; temp1 != NULL; temp1 = temp1->link)
+                findAndReplace(&SYMTAB, temp1->address, temp->address, &objectCode);
+            temp->present = 1;
         }
+        return;
     }
+    printf("hi");
 
     sym *newNode = (sym *)malloc(sizeof(sym));
     memcpy(newNode->labelName,label, strlen(label));
@@ -91,6 +150,7 @@ void saveSym(sym **SYMTAB, char label[], int LOCCTR, int forward) {
     }
     for (temp = *SYMTAB; temp->next != NULL; temp = temp->next);
     temp->next = newNode;
+
 }
 
 int searchSymtab(sym *SYMTAB, char key[]) {
@@ -98,7 +158,9 @@ int searchSymtab(sym *SYMTAB, char key[]) {
     sym *temp;
     for (temp = SYMTAB; temp != NULL; temp = temp->next) {
         if (!strcmp(key, temp->labelName) && temp->present) {
+            // printf("%s %s ",temp->labelName, temp->address);
             address = (int)strtol(temp->address,NULL,16);
+            // printf("%d\n", address);
             return address;
         }
     }
@@ -186,14 +248,14 @@ int main() {
         if (strcmp(code[0], "**")) {
             if (strcmp(code[0], "-")) {
                 if (searchSymtab(SYMTAB, code[0]) == -1)
-                    saveSym(&SYMTAB, code[0], LOCCTR, 1);
+                    saveSym(&SYMTAB, code[0], LOCCTR, 0, &objectCode);
             }
             if ((opcode = searchOptab(OPTAB, code[1])) != -1) {
                 if (strcmp(code[2],"-") && strcmp(code[2],"BUFFER,X")) {
                     if ((address = searchSymtab(SYMTAB, code[2])) != -1) {
                         sprintf(addressString, "%04X", address);
                     }else {
-                        saveSym(&SYMTAB, code[2], 0, 0);
+                        saveSym(&SYMTAB, code[2], LOCCTR, 1, &objectCode);
                         memcpy(addressString, "0000", strlen(addressString));
                     }
                 } else {
@@ -254,9 +316,15 @@ int main() {
         storeTextData(objectCode, tRecord, &tCur, &tStart, LOCCTR, &tLen,1);
     fprintf(objectCode, "E‸%06X", startingAddress);
 
-    // sym *temp;
-    // for (temp = SYMTAB; temp != NULL; )
 
+    // printf("\n\nnew\n");
+    // sym *tmp;
+    // nfrwd *tmp1;
+    // for (tmp = SYMTAB; tmp != NULL; tmp = tmp->next) {
+    //     printf("\n%s : %s ", tmp->labelName, tmp->address);
+    //     for (tmp1 = tmp->link; tmp1 != NULL; tmp1 = tmp1->link)
+    //         printf("-> %s", tmp1->address);
+    // }
     fclose(source);
     fclose(OPTAB);
     fclose(objectCode);
