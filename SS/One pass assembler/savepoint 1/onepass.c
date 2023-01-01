@@ -41,112 +41,44 @@ int parseSpTb(char code[][20], FILE *source) {
     return j+1;
 }
 
-void findAndReplace(sym ***SYMTAB, char find[20], char replace[20], FILE ***objectCode, char tRecord[][20], int tCur, int tStart, int addSize[][15], int row) {
+void findAndReplace(sym ***SYMTAB, char find[20], char replace[20], FILE ***objectCode, char tRecord[][20], int tCur) {
     // memcpy((**SYMTAB)->labelName, "Hello", 6);
-    // printf("starteee: %X\n", tStart);
     int len;
     char code[100][20];
 
-    int findHx, replaceHx, start, cur, curNext, idx, curRow;
+    int findHx, replaceHx, cur, textSz, max;
     findHx = (int)strtol(find,NULL,16);
     replaceHx = (int)strtol(replace,NULL,16);
+    FILE *tempFile = fopen("temp.txt", "w+");
 
-    printf("find: %X replace: %X\n", findHx, replaceHx);
-    idx = -1;
-    if (findHx >= tStart) {
-        printf("\nsame ;)\n");
-        // printf("row: %d\n", row);
-        cur = tStart;
-        for (int i = 0; i < tCur; ++i) {
-            printf("%X : %s\n", cur, tRecord[i]);
-            // curNext = cur + addSize[row][i+1];
-            if (findHx == cur) {
-                printf("found: %s\n", tRecord[i]);
-                idx = i;
-            } else if (findHx < cur) {
-                printf("found: %s\n", tRecord[i -1]);
-                idx = i -1;
-            }
-            if (idx != -1) {
-                for (int k = 0; k < 4; ++k)
-                    tRecord[idx][2 + k] = replace[k];
-                printf("\ntRecord: %s\n", tRecord[idx]);
-                break;
-            }
-            cur += addSize[row][i];
-        }
-    }
-    else {
-            int chumma;
-            printf("\nwaiting: ");
-            scanf("%d", &chumma);
-        FILE *tempFile = fopen("temp.txt", "w+");
-        printf("\ndifferent ;)\n");
-        curRow = 0;
-        fseek(**objectCode, 0, SEEK_SET);
+    fseek(**objectCode, 0, SEEK_SET);
+    len = parseSpTb(code, **objectCode);
+    printf("\nlen: %d\n", len);
+    for (int i = 0; i < len; ++i)
+        printf("%s ", code[i]);
+    printf("\n");
+    while (len) {
+        cur = (int)strtol(code[1],NULL,16);
+        textSz = (int)strtol(code[2],NULL,16);
+        max = cur + textSz;
+        printf("%X\n", max);
+
         len = parseSpTb(code, **objectCode);
-        while (len) {
-            if (idx == -1) {
-                start = (int)strtol(code[1],NULL,16);
-                printf("start: %X\n", start);
-                cur = start;
-                for (int i = 3; i < len; ++i) {
-                    printf("%X : %s\n", cur, code[i]);
-                    if (findHx == cur) {
-                        idx = i;
-                        printf("found: %s idx: %d\n", code[i], idx);
-                    } else if (findHx < cur) {
-                        idx = i -1;
-                        printf("less found: %s idx: %d\n", code[i-1], idx);
-                    }
-                    if (idx != -1) {
-                        for (int k = 0; k < 4; ++k)
-                            code[idx][2 + k] = replace[k];
-                        // printf("\ntRecord: %s\n", tRecord[idx]);
-                        break;
-                    }
-                    cur += addSize[curRow][i-3];
-                }
-                ++curRow;
-            }
-
-
-            for (int i = 0; i < len; ++i)
-                printf("%s ", code[i]);
-            printf("\n");
-
-            for (int i = 0; i < len -1; ++i)
-                fprintf(tempFile, "%s ",code[i]);
-            fprintf(tempFile,"%s\n", code[len -1]);
-
-            len = parseSpTb(code, **objectCode);
-        }
-
-            printf("\n2nd waiting: ");
-            scanf("%d", &chumma);
-        freopen("objectCode.txt", "w+", **objectCode);
-
-        fseek(tempFile, 0, SEEK_SET);
-        char data[200];
-        while (fgets(data, 200, tempFile))
-            fputs(data, **objectCode);
-        fclose(tempFile);
-        // fseek(**objectCode, 0, SEEK_END);
+        printf("\nlen: %d\n", len);
+        for (int i = 0; i < len; ++i)
+            printf("%s ", code[i]);
+        printf("\n");
     }
 
-    // for (int i = 0; i < tCur; ++i)
-    //     printf("%s ", tRecord[i]);
-    // printf("\n");
-
-    // printf("\naddsize: ");
-    // for (int i = 0; i < tCur; ++i)
-    //     printf("%d ", addSize[i]);
-    // printf("\n");
+    for (int i = 0; i < tCur; ++i)
+        printf("%s ", tRecord[i]);
+    printf("\n");
 
     // fseek(**objectCode, 0, SEEK_END);
+    fclose(tempFile);
 }
 
-void saveSym(sym **SYMTAB, char label[], int LOCCTR, int forward, FILE **objectCode, char tRecord[][20], int tCur, int tStart, int addSize[][15], int row) {
+void saveSym(sym **SYMTAB, char label[], int LOCCTR, int forward, FILE **objectCode, char tRecord[][20], int tCur) {
     // printf("%s %d\n", label, LOCCTR);
 
     char strLocctr[20];
@@ -175,7 +107,7 @@ void saveSym(sym **SYMTAB, char label[], int LOCCTR, int forward, FILE **objectC
         } else {
             memcpy(temp->address, strLocctr, strlen(strLocctr)+1);
             for (temp1 = temp->link; temp1 != NULL; temp1 = temp1->link)
-                findAndReplace(&SYMTAB, temp1->address, temp->address, &objectCode, tRecord, tCur, tStart, addSize, row);
+                findAndReplace(&SYMTAB, temp1->address, temp->address, &objectCode, tRecord, tCur);
             temp->present = 1;
         }
         return;
@@ -256,25 +188,6 @@ void resetTextRecord(char tRecord[][20], int *tCur) {
     *tCur = 0;
 }
 
-void printAddSize(int addSize[][15]) {
-    printf("\nAddSize\n");
-    for (int i = 0; i < 5; ++i) {
-        for (int j = 0; j < 15; ++j)
-            printf("%d ", addSize[i][j]);
-        printf("\n");
-    }
-    printf("\n");
-}
-
-void resetAddSize(int addSize[][15]) {
-
-    for (int i = 0; i < 5; ++i) {
-        for (int j = 0; j < 15; ++j)
-            addSize[i][j] = 0;
-        printf("\n");
-    }
-}
-
 void storeTextData(FILE *objectCode, char tRecord[][20], int *tCur, int *tStart, int current, int *tLen, int last) {
     char temp[30];
     if (!last)
@@ -291,8 +204,7 @@ void storeTextData(FILE *objectCode, char tRecord[][20], int *tCur, int *tStart,
 
 int main() {
     FILE  *source, *OPTAB, *objectCode;
-    int LOCCTR, startingAddress, current, len, programLen, tStartAddr, opcode, tCur = 0, tStart, address, tLen = 0, addSize[10][15], row = 0;
-
+    int LOCCTR, startingAddress, current, len, programLen, tStartAddr, opcode, tCur = 0, tStart, address, tLen = 0;
     char code[100][20], temp[30], tRecord[20][20], addressString[10], previous[30];
     sym *SYMTAB = NULL;
 
@@ -316,51 +228,40 @@ int main() {
         LOCCTR = 0;
     startingAddress = LOCCTR;
     tStart = startingAddress;
-    resetAddSize(addSize);
     while (strcmp(code[1], "END")) {
         current = LOCCTR;
         if (strcmp(code[0], "**")) {
             if (strcmp(code[0], "-")) {
                 if (searchSymtab(SYMTAB, code[0]) == -1)
-                    saveSym(&SYMTAB, code[0], LOCCTR, 0, &objectCode, tRecord, tCur, tStart, addSize, row);
+                    saveSym(&SYMTAB, code[0], LOCCTR, 0, &objectCode, tRecord, tCur);
             }
             if ((opcode = searchOptab(OPTAB, code[1])) != -1) {
                 if (strcmp(code[2],"-") && strcmp(code[2],"BUFFER,X")) {
                     if ((address = searchSymtab(SYMTAB, code[2])) != -1) {
                         sprintf(addressString, "%04X", address);
                     }else {
-                        saveSym(&SYMTAB, code[2], LOCCTR, 1, &objectCode, tRecord, tCur, tStart, addSize, row);
+                        saveSym(&SYMTAB, code[2], 0, 1, &objectCode, tRecord, tCur);
                         memcpy(addressString, "0000\0", 5);
                     }
                 } else {
                     memcpy(addressString, "0000\0", 5);
                 }
                 sprintf(tRecord[tCur], "%02X%s",opcode,addressString);
-                tLen += strlen(tRecord[tCur]);
-                addSize[row][tCur++] += 3;
+                tLen += strlen(tRecord[tCur++]);
                 LOCCTR += 3;
-                // printf("%d",addSize[row][tCur -1]);
             }
             else if (!strcmp(code[1], "WORD")) {
                 char word[50];
                 int val = (int)strtol(code[2], NULL, 10);
                 sprintf(word,"%06X", val);
                 memcpy(tRecord[tCur], word, strlen(word));
-                tLen += strlen(tRecord[tCur]);
+                tLen += strlen(tRecord[tCur++]);
                 LOCCTR += 3;
-                addSize[row][tCur++] += 3;
-                // printf("%d",addSize[row][tCur -1]);
             }
-            else if (!strcmp(code[1], "RESW")) {
-                addSize[row][tCur] += (3 * atoi(code[2]));
+            else if (!strcmp(code[1], "RESW"))
                 LOCCTR += (3 * atoi(code[2]));
-                // printf("%d",addSize[row][tCur]);
-            }
-            else if (!strcmp(code[1], "RESB")) {
-                addSize[row][tCur] += atoi(code[2]);
+            else if (!strcmp(code[1], "RESB"))
                 LOCCTR += atoi(code[2]);
-                // printf("%d",addSize[row][tCur]);
-            }
             else if (!strcmp(code[1], "BYTE")) {
                 if (code[2][0] == 'C') {
                     char byteAscii[100] = {0};
@@ -373,9 +274,7 @@ int main() {
                         strcat(byteAscii, asciiCode);
                     }
                     memcpy(tRecord[tCur], byteAscii, strlen(byteAscii));
-                    addSize[row][tCur] += strlen(byteAscii)/2;
                     LOCCTR += strlen(byteAscii)/2;
-                    // printf("%d",addSize[row][tCur]);
                 } else if (code[2][0] == 'X') {
                     char new[10], ch;
                     memset(new, 0, 10);
@@ -387,41 +286,24 @@ int main() {
                         new[j++] = ch;
                     }
                     memcpy(tRecord[tCur], new, strlen(new));
-                    addSize[row][tCur] += strlen(new)/2;
                     LOCCTR += strlen(new)/2;
-                    // printf("%d",addSize[row][tCur]);
                 }
                 tLen += strlen(tRecord[tCur++]);
             }
             else
                 printf("Error in opcode!\n");
         }
-        if (tLen > 60) {
-            int tmp = addSize[row][tCur -1];
-            addSize[row][tCur -1] = 0;
-            // printAddSize(addSize);
+        if (tLen > 60)
             storeTextData(objectCode, tRecord, &tCur, &tStart, current, &tLen, 0);
-            addSize[++row][0] = tmp;
-        }
         len = parseSpTb(code, source);
     }
-    if (tLen) {
-        int tmp = addSize[row][tCur -1];
-        // printAddSize(addSize);
+    if (tLen)
         storeTextData(objectCode, tRecord, &tCur, &tStart, LOCCTR, &tLen,1);
-        addSize[++row][0] = tmp;
-    }
     fprintf(objectCode, "E %06X", startingAddress);
 
     // freopen("objectCode.txt", "w+", objectCode);
     //
 
-    for (sym *temp = SYMTAB; temp != NULL; temp = temp->next) {
-        printf("\n%s: %s = ", temp->labelName, temp->address);
-        for (nfrwd *temp1 = temp->link; temp1 != NULL; temp1 = temp1->link) {
-            printf("-> %s", temp1->address);
-        }
-    }
 
     // fseek(objectCode, 0, SEEK_SET);
     // len = parseSpTb(code, objectCode);
@@ -446,6 +328,6 @@ int main() {
     fclose(source);
     fclose(OPTAB);
     fclose(objectCode);
-    // remove("temp.txt");
+    remove("temp.txt");
     return 0;
 }

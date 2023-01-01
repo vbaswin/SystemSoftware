@@ -6,12 +6,12 @@ void anotherFunction(FILE *source) {
     fscanf(source, "%s %s %s", first, second, third);
     printf("%s %s %s\n", first, second, third);
 
-    fseek(source,0,SEEK_SET);
+    freopen("source.txt", "w+", source);
     fprintf(source, "I am Aswin V B\n");
-    int now;
-    scanf("%d", &now);
+    int now = 10;
+    // scanf("%d", &now);
 
-    fseek(source,0,SEEK_END);
+    // fseek(source,0,SEEK_END);
     fprintf(source, "%d\n", now);
 
     fprintf(source, "I also like smiling :)\n");
@@ -20,7 +20,7 @@ void anotherFunction(FILE *source) {
 
 int main() {
     FILE *source = fopen("source.txt", "w+");
-    fprintf(source, "I am Aswin\nI love programming\n");
+    fprintf(source, "I am Aswin\nI love programming\nI am working on my cpp skills and then would like to move on to rust\n");
     // fclose(source);
     // fprintf(source, "Good \n");
     anotherFunction(source);

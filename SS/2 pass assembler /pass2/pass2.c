@@ -50,6 +50,7 @@ int searchOptab(FILE *OPTAB, char key[]) {
 }
 
 void writeTextRecord(FILE *objectCode, char tRecord[][20], int tStart, int tCur, int tLen) {
+    printf("len/2: %d\n", tLen/2);
     fprintf(objectCode, "T‸%06X‸%02X", tStart, tLen/2);
     for (int i = 0; i < tCur; ++i)
         fprintf(objectCode, "‸%s", tRecord[i]);
@@ -71,7 +72,7 @@ void storeTextData(FILE *objectCode, char tRecord[][20], int *tCur, int *tStart,
     memcpy(temp, tRecord[*tCur], strlen(tRecord[*tCur]));
     writeTextRecord(objectCode, tRecord, *tStart, *tCur, *tLen-strlen(tRecord[*tCur]));
     resetTextRecord(tRecord, &*tCur);
-    memcpy(tRecord[(*tCur)++], temp, strlen(temp));
+    memcpy(tRecord[(*tCur)++], temp, strlen(temp)+1);
     *tStart = strtol(code[0], NULL, 16);
     *tLen = strlen(temp);
 
@@ -116,9 +117,9 @@ int main() {
                 if ((address = searchSymtab(SYMTAB, code[3])) != -1) {
                     sprintf(addressString, "%04X", address);
                 }else
-                    memcpy(addressString, "0000", strlen(addressString));
+                    memcpy(addressString, "0000\0",5);
             } else {
-                memcpy(addressString, "0000", strlen(addressString));
+                memcpy(addressString, "0000\0", 5);
             }
             sprintf(tRecord[tCur], "%02X%s",opcode,addressString);
             tLen += strlen(tRecord[tCur++]);
