@@ -77,6 +77,7 @@ void findAndReplace(sym ***SYMTAB, char find[20], char replace[20], FILE ***obje
         }
     }
     else {
+        // first waiting for checking temp file
             int chumma;
             printf("\nwaiting: ");
             scanf("%d", &chumma);
@@ -121,7 +122,7 @@ void findAndReplace(sym ***SYMTAB, char find[20], char replace[20], FILE ***obje
 
             len = parseSpTb(code, **objectCode);
         }
-
+            // this waiting to check object code file update :))))) ooooooooh ooooooooooh
             printf("\n2nd waiting: ");
             scanf("%d", &chumma);
         freopen("objectCode.txt", "w+", **objectCode);
@@ -289,11 +290,29 @@ void storeTextData(FILE *objectCode, char tRecord[][20], int *tCur, int *tStart,
 
 }
 
+void writeHeaderEndRecord(FILE **objectCode, char name[], int startingAddress, int LOCCTR) {
+    char data[200];
+    fseek(*objectCode, 0, SEEK_SET);
+    FILE *tempFile = fopen("temp.txt", "w+");
+    fprintf(tempFile, "H %-6s %06X %06X\n", name, startingAddress, (LOCCTR - startingAddress));
+    while (fgets(data, 200, *objectCode))
+        fputs(data, tempFile);
+    fprintf(tempFile, "E %06X", startingAddress);
+
+    fseek(tempFile, 0, SEEK_SET);
+    freopen("objectCode.txt", "w+", *objectCode);
+    while (fgets(data, 200, tempFile))
+        fputs(data, *objectCode);
+
+    fclose(tempFile);
+    remove("temp.txt");
+}
+
 int main() {
     FILE  *source, *OPTAB, *objectCode;
     int LOCCTR, startingAddress, current, len, programLen, tStartAddr, opcode, tCur = 0, tStart, address, tLen = 0, addSize[10][15], row = 0;
 
-    char code[100][20], temp[30], tRecord[20][20], addressString[10], previous[30];
+    char code[100][20], temp[30], tRecord[20][20], addressString[10], previous[30], data[200];
     sym *SYMTAB = NULL;
 
     source = fopen("source.txt", "r+");
@@ -411,7 +430,6 @@ int main() {
         storeTextData(objectCode, tRecord, &tCur, &tStart, LOCCTR, &tLen,1);
         addSize[++row][0] = tmp;
     }
-    fprintf(objectCode, "E %06X", startingAddress);
 
     // freopen("objectCode.txt", "w+", objectCode);
     //
@@ -443,9 +461,10 @@ int main() {
     //     printf("\n");
     // }
 
+    writeHeaderEndRecord(&objectCode, name, startingAddress, LOCCTR);
+
     fclose(source);
     fclose(OPTAB);
     fclose(objectCode);
-    // remove("temp.txt");
     return 0;
 }
