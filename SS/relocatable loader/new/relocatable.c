@@ -25,10 +25,24 @@ int parseSpTb(char code[][20], FILE *source) {
     return j+1;
 }
 
+void convertHexToBinaryString(int hxBits, char binary[]) {
+    int quo, rem, cur = 9;
+    binary[10] = 0;
+    for (int i = hxBits; i >= 2; i = quo) {
+        quo = i / 2;
+        rem = i % 2;
+        binary[cur--] = rem + '0';
+    }
+    binary[cur--] = quo + '0';
+    while (cur != -1)
+        binary[cur--] = '0';
+   return;
+}
+
 int main() {
     FILE *objectCode, *output;
-    char code[100][20];
-    int LOCCTR, loadLocation;
+    char code[100][20], binary[11], addressField[5];
+    int hxbits, LOCCTR, bit, address, loadLocation;
 
     objectCode = fopen("objectCode.txt", "r+");
     output = fopen("output.txt", "w+");
@@ -41,8 +55,20 @@ int main() {
     len = parseSpTb(code, objectCode);
 
     while (len && strcmp(code[0],"E")) {
-        for (int i = 3; i < len; ++i) {
-            fprintf(output, "%04X %s\n", LOCCTR, code[i]);
+        bit = 0;
+        hxbits = (int)strtol(code[3], NULL, 16);
+        convertHexToBinaryString(hxbits, binary);
+
+        for (int i = 4; i < len; ++i) {
+            if (binary[bit++] == '1') {
+                for (int j = 0; j < 4; ++j)
+                    addressField[j] = code[i][2 + j];
+                address = (int)strtol(addressField, NULL, 16);
+                address += loadLocation;
+                fprintf(output, "%04X %c%c%04X\n", LOCCTR, code[i][0], code[i][1], address);
+            }
+            else
+                fprintf(output, "%04X %s\n", LOCCTR, code[i]);
             LOCCTR += strlen(code[i])/2;
         }
         len = parseSpTb(code, objectCode);
