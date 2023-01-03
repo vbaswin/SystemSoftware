@@ -1,3 +1,9 @@
+/*
+    Program name: Pass 2 of 2 pass assembler
+    Authur name: Aswin V B
+    Rollno: 222
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
