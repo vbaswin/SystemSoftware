@@ -1,0 +1,4 @@
+[ ]  create pop function
+[ ]  separate parse based on & for substitution
+[ ]  create substitute function for positional parameters
+[ ]  create subsitute function for arguments parametersr

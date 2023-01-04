@@ -1,3 +1,9 @@
+/*
+    Program name: Pass 1 of 2 pass assembler
+    Authur name: Aswin V B
+    Rollno: 222
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,14 +12,14 @@
 int parseSpTb (char code[][20], FILE *source) {
     int j = 0, k = 0, sz = 0;
     char ch;
-    while ((ch = fgetc(source)) != '\n' && ch != EOF) { 
+    while ((ch = fgetc(source)) != '\n' && ch != EOF) {
         if(ch == ' ' || ch == '\t'){
             if (sz) {
                 sz = 0;
                 code[j][k] = 0;
                 k = 0;
                 ++j;
-            } else 
+            } else
                 continue;
         } else {
             sz = 1;
@@ -29,7 +35,7 @@ int parseSpTb (char code[][20], FILE *source) {
 void saveInter(FILE *intermediate, char code[][20], int len, int LOCCTR) {
     fprintf(intermediate, "%04X\t%s", LOCCTR, code[0]);
     for (int i = 1; i < 3; ++i) {
-        if (strlen(code[i-1]) < 4) 
+        if (strlen(code[i-1]) < 4)
             fprintf(intermediate,"\t");
         fprintf(intermediate,"\t%s", code[i]);
     }
@@ -38,7 +44,7 @@ void saveInter(FILE *intermediate, char code[][20], int len, int LOCCTR) {
 void saveSym(FILE *file, char label[], int LOCCTR) {
     if (strlen(label) < 4)
         fprintf(file, "%s\t\t%04X\n", label, LOCCTR);
-    else 
+    else
         fprintf(file, "%s\t%04X\n", label, LOCCTR);
 }
 
@@ -46,7 +52,7 @@ int searchSymtab(FILE *SYMTAB, char key[]) {
     rewind(SYMTAB);
     char label[20], address[20];
     while (fscanf(SYMTAB, "%s %s", label, address) != EOF) {
-        if (!strcmp(key, label)) 
+        if (!strcmp(key, label))
             return 1;
     }
     return 0;
@@ -67,7 +73,7 @@ int bytecondition(char str[]) {
     if (str[0] == 'C') {
         return strlen(str) - 3;
     }
-    else if (str[0] == 'X') 
+    else if (str[0] == 'X')
         return ceil((int)((strlen(str)-2)/2));
     return 0;
 }
@@ -95,7 +101,7 @@ int main() {
         saveInter(intermediate, code, len, LOCCTR);
         len = parseSpTb(code, source);
     }
-    else 
+    else
         LOCCTR = 0;
     startingAddress = LOCCTR;
 
@@ -104,17 +110,17 @@ int main() {
         if (strcmp(code[0], "**")) {
             if (strcmp(code[0], "-")) {
                 if (!searchSymtab(SYMTAB, code[0]))
-                    saveSym(SYMTAB, code[0], LOCCTR); 
+                    saveSym(SYMTAB, code[0], LOCCTR);
             }
-            if (searchOptab(OPTAB, code[1])) 
+            if (searchOptab(OPTAB, code[1]))
                 LOCCTR += 3;
-            else if (!strcmp(code[1], "WORD")) 
+            else if (!strcmp(code[1], "WORD"))
                 LOCCTR += 3;
             else if (!strcmp(code[1], "RESW"))
                 LOCCTR += (3 * atoi(code[2]));
-            else if (!strcmp(code[1], "RESB")) 
+            else if (!strcmp(code[1], "RESB"))
                 LOCCTR += atoi(code[2]);
-            else if (!strcmp(code[1], "BYTE")) 
+            else if (!strcmp(code[1], "BYTE"))
                 LOCCTR += bytecondition(code[2]);
             else {
                 printf("Error in opcode!\n");
@@ -122,7 +128,7 @@ int main() {
                 continue;
             }
         }
-        else { 
+        else {
             len = parseSpTb(code, source);
             continue;
         }

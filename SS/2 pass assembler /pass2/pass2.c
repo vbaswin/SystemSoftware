@@ -56,7 +56,6 @@ int searchOptab(FILE *OPTAB, char key[]) {
 }
 
 void writeTextRecord(FILE *objectCode, char tRecord[][20], int tStart, int tCur, int tLen) {
-    printf("len/2: %d\n", tLen/2);
     fprintf(objectCode, "T‸%06X‸%02X", tStart, tLen/2);
     for (int i = 0; i < tCur; ++i)
         fprintf(objectCode, "‸%s", tRecord[i]);

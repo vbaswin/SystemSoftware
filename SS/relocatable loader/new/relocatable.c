@@ -1,3 +1,9 @@
+/*
+    Program name: Relocatable loader
+    Authur name: Aswin V B
+    Rollno: 222
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
