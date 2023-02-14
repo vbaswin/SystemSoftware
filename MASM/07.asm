@@ -81,19 +81,25 @@ code segment
 		lea si,str
 		mov ax,0000h
 		mov bx,0000h
+		mov cx,0000h
+		mov dx,0000h
 		mov dx,len1
 	l1: 	mov al,[si]
 		mov cx,len2
-	l2:	lea di,subStr
-		mov bl,[di]
+		lea di,subStr
+		mov temp,si
+	l2:	mov bl,[di]
 		cmp al,bl
 		jne notEqual
 		inc di
+		inc si
+		mov al,[si]
 		loop l2
 		print affirm
 		jmp exit
 
-notEqual:	inc si
+notEqual:	mov si,temp
+		inc si
 		dec dx
 		cmp dx,0000h
 		je notPresent
