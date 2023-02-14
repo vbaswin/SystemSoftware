@@ -1,0 +1,224 @@
+Microsoft (R) Macro Assembler Version 5.00                  2/14/23 12:51:44
+                                                             Page     1-1
+
+
+       1				 
+       2 0000				data segment 
+       3 0000  0A 0D 46 69 72 73 74	opr1 db 0ah,0dh,"First number: $" 
+       4       20 6E 75 6D 62 65 72	
+       5       3A 20 24			
+       6 0011  0A 0D 53 65 63 6F 6E	opr2 db 0ah,0dh,"Second number: $" 
+       7       64 20 6E 75 6D 62 65	
+       8       72 3A 20 24		
+       9 0023  0A 0D 54 68 69 72 64	result db 0ah,0dh,"Third number: $" 
+      10       20 6E 75 6D 62 65 72	
+      11       3A 20 24			
+      12 0034  ????			num dw ? 
+      13 0036  ????			num1 dw ? 
+      14 0038  ????			num2 dw ? 
+      15 003A  ????			temp dw ? 
+      16 003C				data ends 
+      17				 
+      18				display macro msg 
+      19					mov dx,offset msg 
+      20					; or lea dx,msg 
+      21					mov ah,09h 
+      22					int 21h 
+      23				endm 
+      24				 
+      25				read macro num 
+      26					local l1,exit 
+      27					mov ax,0000h 
+      28					mov num,ax 
+      29					l1: 
+      30						mov ah,01h 
+      31						int 21h 
+      32						cmp al,0dh 
+      33						je exit 
+      34						mov ah,00h 
+      35						sub ax,0030h 
+      36						mov temp,ax 
+      37						mov bx,000ah 
+      38						mov ax,num 
+      39						mul bx 
+      40						add ax,temp 
+      41						mov num,ax 
+      42					loop l1 
+      43					exit: nop 
+      44				endm 
+      45				 
+      46				numDisplay macro num 
+      47					local l1,l2 
+      48					mov ax,num 
+      49					mov cx,0000h 
+      50					l1: 
+      51						mov dx,0000h 
+      52						mov bx,000ah 
+      53						div bx 
+      54						push dx 
+Microsoft (R) Macro Assembler Version 5.00                  2/14/23 12:51:44
+                                                             Page     1-2
+
+
+      55						inc cx 
+      56						cmp ax,0000h 
+      57						jne l1 
+      58					l2: 
+      59						pop dx 
+      60						add dx,0030h 
+      61						mov ah,02h 
+      62						int 21h 
+      63					loop l2 
+      64				endm 
+      65				 
+      66 0000				code segment 
+      67					assume ds:data, cs:code 
+      68 0000					start: 
+      69 0000  B8 ---- R				mov ax,data 
+      70 0003  8E D8					mov ds,ax 
+      71						display opr1 
+      72 0005  BA 0000 R             1		mov dx,offset opr1 
+      73 0008  B4 09                 1		mov ah,09h 
+      74 000A  CD 21                 1		int 21h 
+      75						read num1 
+      76 000C  B8 0000               1		mov ax,0000h 
+      77 000F  A3 0036 R             1		mov num1,ax 
+      78 0012                        1		??0000: 
+      79 0012  B4 01                 1			mov ah,01h 
+      80 0014  CD 21                 1			int 21h 
+      81 0016  3C 0D                 1			cmp al,0dh 
+      82 0018  74 19                 1			je ??0001 
+      83 001A  B4 00                 1			mov ah,00h 
+      84 001C  2D 0030               1			sub ax,0030h 
+      85 001F  A3 003A R             1			mov temp,ax 
+      86 0022  BB 000A               1			mov bx,000ah 
+      87 0025  A1 0036 R             1			mov ax,num1 
+      88 0028  F7 E3                 1			mul bx 
+      89 002A  03 06 003A R          1			add ax,temp 
+      90 002E  A3 0036 R             1			mov num1,ax 
+      91 0031  E2 DF                 1		loop ??0000 
+      92 0033  90                    1		??0001: nop 
+      93						numDisplay num1 
+      94 0034  A1 0036 R             1		mov ax,num1 
+      95 0037  B9 0000               1		mov cx,0000h 
+      96 003A                        1		??0002: 
+      97 003A  BA 0000               1			mov dx,0000h 
+      98 003D  BB 000A               1			mov bx,000ah 
+      99 0040  F7 F3                 1			div bx 
+     100 0042  52                    1			push dx 
+     101 0043  41                    1			inc cx 
+     102 0044  3D 0000               1			cmp ax,0000h 
+     103 0047  75 F1                 1			jne ??0002 
+     104 0049                        1		??0003: 
+     105 0049  5A                    1			pop dx 
+     106 004A  83 C2 30              1			add dx,0030h 
+     107 004D  B4 02                 1			mov ah,02h 
+     108 004F  CD 21                 1			int 21h 
+Microsoft (R) Macro Assembler Version 5.00                  2/14/23 12:51:44
+                                                             Page     1-3
+
+
+     109 0051  E2 F6                 1		loop ??0003 
+     110						display opr2 
+     111 0053  BA 0011 R             1		mov dx,offset opr2 
+     112 0056  B4 09                 1		mov ah,09h 
+     113 0058  CD 21                 1		int 21h 
+     114						read num2 
+     115 005A  B8 0000               1		mov ax,0000h 
+     116 005D  A3 0038 R             1		mov num2,ax 
+     117 0060                        1		??0004: 
+     118 0060  B4 01                 1			mov ah,01h 
+     119 0062  CD 21                 1			int 21h 
+     120 0064  3C 0D                 1			cmp al,0dh 
+     121 0066  74 19                 1			je ??0005 
+     122 0068  B4 00                 1			mov ah,00h 
+     123 006A  2D 0030               1			sub ax,0030h 
+     124 006D  A3 003A R             1			mov temp,ax 
+     125 0070  BB 000A               1			mov bx,000ah 
+     126 0073  A1 0038 R             1			mov ax,num2 
+     127 0076  F7 E3                 1			mul bx 
+     128 0078  03 06 003A R          1			add ax,temp 
+     129 007C  A3 0038 R             1			mov num2,ax 
+     130 007F  E2 DF                 1		loop ??0004 
+     131 0081  90                    1		??0005: nop 
+     132						numDisplay num2 
+     133 0082  A1 0038 R             1		mov ax,num2 
+     134 0085  B9 0000               1		mov cx,0000h 
+     135 0088                        1		??0006: 
+     136 0088  BA 0000               1			mov dx,0000h 
+     137 008B  BB 000A               1			mov bx,000ah 
+     138 008E  F7 F3                 1			div bx 
+     139 0090  52                    1			push dx 
+     140 0091  41                    1			inc cx 
+     141 0092  3D 0000               1			cmp ax,0000h 
+     142 0095  75 F1                 1			jne ??0006 
+     143 0097                        1		??0007: 
+     144 0097  5A                    1			pop dx 
+     145 0098  83 C2 30              1			add dx,0030h 
+     146 009B  B4 02                 1			mov ah,02h 
+     147 009D  CD 21                 1			int 21h 
+     148 009F  E2 F6                 1		loop ??0007 
+     149						display result 
+     150 00A1  BA 0023 R             1		mov dx,offset result 
+     151 00A4  B4 09                 1		mov ah,09h 
+     152 00A6  CD 21                 1		int 21h 
+     153 00A8  B4 4C					mov ah,4ch 
+     154 00AA  CD 21					int 21h 
+     155 00AC					code ends 
+     156				end start 
+
+Microsoft (R) Macro Assembler Version 5.00                  2/14/23 12:51:44
+                                                             Symbols-1
+
+
+Macros:
+
+		N a m e			Lines
+
+DISPLAY  . . . . . . . . . . . .  	   4
+NUMDISPLAY . . . . . . . . . . .  	  16
+READ . . . . . . . . . . . . . .  	  17
+
+Segments and Groups:
+
+                N a m e         	Length	 Align	Combine Class
+
+CODE . . . . . . . . . . . . . .  	00AC	PARA	NONE	
+DATA . . . . . . . . . . . . . .  	003C	PARA	NONE	
+
+Symbols:            
+
+                N a m e         	Type	 Value	 Attr
+
+NUM  . . . . . . . . . . . . . .  	L WORD	0034	DATA
+NUM1 . . . . . . . . . . . . . .  	L WORD	0036	DATA
+NUM2 . . . . . . . . . . . . . .  	L WORD	0038	DATA
+
+OPR1 . . . . . . . . . . . . . .  	L BYTE	0000	DATA
+OPR2 . . . . . . . . . . . . . .  	L BYTE	0011	DATA
+
+RESULT . . . . . . . . . . . . .  	L BYTE	0023	DATA
+
+START  . . . . . . . . . . . . .  	L NEAR	0000	CODE
+
+TEMP . . . . . . . . . . . . . .  	L WORD	003A	DATA
+
+??0000 . . . . . . . . . . . . .  	L NEAR	0012	CODE
+??0001 . . . . . . . . . . . . .  	L NEAR	0033	CODE
+??0002 . . . . . . . . . . . . .  	L NEAR	003A	CODE
+??0003 . . . . . . . . . . . . .  	L NEAR	0049	CODE
+??0004 . . . . . . . . . . . . .  	L NEAR	0060	CODE
+??0005 . . . . . . . . . . . . .  	L NEAR	0081	CODE
+??0006 . . . . . . . . . . . . .  	L NEAR	0088	CODE
+??0007 . . . . . . . . . . . . .  	L NEAR	0097	CODE
+@FILENAME  . . . . . . . . . . .  	TEXT  02		
+
+
+     75 Source  Lines
+    153 Total   Lines
+     23 Symbols
+
+  50642 + 465902 Bytes symbol space free
+
+      0 Warning Errors
+      0 Severe  Errors

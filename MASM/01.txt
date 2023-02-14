@@ -1,0 +1,26 @@
+bx and cx   => are 16 bit registers
+
+int 21h     => dos intere
+
+mov ah,<no>
+
+01h         -> input            -> al
+09h         -> diplay string    -> from dx
+02h         -> output char      -> from dl(stored as ascii form)
+4ch         -> exit             -> status of termination stored in al
+
+aaa         ->
+    (always clear ah before aaa)
+    lower nibble of al < 9  -> clear higher nibble of al, inc ah
+    lower nibble of al > 9  -> lower nibble + 6 > higher nibble in ah, lower nibble of al in al
+
+except storing strings all the other function calls use 8-bit register
+
+0ah     -> feed input
+0dh     -> carriage return
+(both commands are executed in common to move to the beginning of next line)
+
+illegal size of operand mostly means using 8 bit registers where 16 bit is required here
+for pop
+
+div in masm we need to clear dx ig
