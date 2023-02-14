@@ -74,7 +74,7 @@ int bytecondition(char str[]) {
         return strlen(str) - 3;
     }
     else if (str[0] == 'X')
-        return ceil((int)((strlen(str)-2)/2));
+        return ceil((int)((strlen(str)-3)/2));
     return 0;
 }
 
