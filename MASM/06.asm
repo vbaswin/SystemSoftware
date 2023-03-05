@@ -28,32 +28,16 @@ read macro str
 	exit: nop
 endm
 
-checkPalindrome macro str
-;	local l1,exit,notPalindrome
-;		lea di, str
-;	l1:	pop dx
-;		mov bx,[di]
-;		inc di
-;		cmp bl,dl
-;		jne notPalindrome
-;		loop l1
-;		print affirm
-;		jmp exit
-;notPalindrome:	print deny
-;	exit: 	nop
-endm
-
 code segment
-	assume cs:code,ds:data
+		assume cs:code,ds:data
 	start: 	mov ax,data
 		mov ds,ax
 		print enterMsg
 		read str
-		;checkPalidrome str
-	lea di, str
-	; Got error while trying to use only pop insturciton in another macro
-	; so that's' why everyone was using a single code for these
-	; kind of operations
+		lea di, str
+		; Got error while trying to use only pop insturciton in another macro
+		; so that's' why everyone was using a single code for these
+		; kind of operations
 	l1:	pop dx
 		mov bx,[di]
 		inc di

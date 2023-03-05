@@ -1,0 +1,23 @@
+                mov si,1000h
+                mov [si],04h
+                mov [si+1],05h
+                mov [si+2],08h
+                mov [si+3],03h
+                mov [si+4],10h
+
+                mov [1200h],03h
+                mov [1201h],00h
+
+                mov cx,0005h
+                mov bx,0000h
+                mov ax,0000h
+l1:             mov al,[si]
+                cmp al,[1200h]
+                je present
+                inc si
+                inc bx
+                loop l1
+                jmp exit
+present:        inc bx
+                mov [1201h],bx
+exit:           hlt

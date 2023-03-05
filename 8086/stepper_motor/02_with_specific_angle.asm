@@ -1,4 +1,7 @@
 ; stepper rotation clockwise and anitclockwise with a specific angle
+; 256 teeth
+; 360 / 256  = 1.8
+; to move 90* 90/1.8 ~ 45
 
 mov bl,45
 mov di,[2000]
